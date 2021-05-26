@@ -18,6 +18,9 @@ typedef struct  {
 // time struct
 struct timeval current_time = {0,0};
 
+// Output file
+FILE *fp;
+
 float calculate_pi(int slaps[2])
 {
     /*
@@ -85,6 +88,7 @@ void *calculate_pi_threads(void *input)
     gettimeofday(&current_time, NULL);
     finish = current_time.tv_sec*1000000 + current_time.tv_usec;
     printf("Elapsed thread %d time: %f seconds\n", pi_p,(float)(finish - begin) / 1000000);
+    fprintf(fp, "%f; ", (float)(finish - begin) / 1000000);
 }
 
 void create_threads(int N, int laps)
@@ -130,9 +134,11 @@ int main()
     long double PI_calculated, PI_parallel=0;
     int i, j, k, vector[2];
     uint begin, finish;
-
+    // Initialize output file
+    fp = fopen("/l/disk0/mvmelo/Documentos/arq_avancada/log_times4.txt", "w"); 
     // Serial approach to evaluate execution time
     printf("Serial Pi\n");
+    fprintf(fp, "\nSerial TImes\nIterations; Time; Value\n");
     for(j=100; j<=1000000000; j=j*10)
     {
         vector[0] = 0;
@@ -145,13 +151,17 @@ int main()
         clock_t toc_p = clock();
 
         printf("Iterations: %d\n", j);
+        fprintf(fp, "\n%d; ", j);
         printf("Elapsed: %f seconds\n", (double)(toc_p - tic_p) / CLOCKS_PER_SEC);
-        printf("Pi calculated value: %.10Lf\n\n", PI_calculated);
+        fprintf(fp, "%f;", (double)(toc_p - tic_p) / CLOCKS_PER_SEC);
+        printf("Pi calculated value: %.10Lf\n", PI_calculated);
+        fprintf(fp, "%Lf", PI_calculated);
     }
     sleep(5);
     // Prallel approach
     
-    printf("Parallel Pi\n");
+    printf("\nParallel Pi\n");
+    fprintf(fp, "\nParallel Times\nTime; Threads; Iterations; Value\n");
     for(i=2; i<=8; i++)
     {
         for(k=100; k<=1000000000; k=k*10)
@@ -163,12 +173,16 @@ int main()
             }    
             //sleep(1);
             printf("Thread's number: %d\n", i);
+            fprintf(fp, "%d; ", i);
             printf("Iterations: %d\n", k);
+            fprintf(fp, "%d; ", k);
             printf("PI parallel calculated value: %.10Lf\n\n", PI_parallel);
+            fprintf(fp, "%Lf\n ", PI_parallel);
             // clean variables to next iteration
             for(j=0; j<8; j++)
                 PI_threads[j] = 0.0;
             PI_parallel = 0;
         }
     }
+    fclose(fp);
 }
